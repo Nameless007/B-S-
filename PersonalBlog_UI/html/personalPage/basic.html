@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>basic</title>
+    <!--引入vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://lib.baomitu.com/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<style>
+    .el-header, .el-footer {
+        background-color: #B3C0D1;
+        color: #333;
+        text-align: center;
+        line-height: 60px;
+    }
+
+    .el-aside {
+        background-color: #D3DCE6;
+        color: #333;
+        text-align: center;
+        line-height: 200px;
+    }
+
+    .el-main {
+        background-color: #E9EEF3;
+        color: #333;
+        text-align: center;
+        line-height: 160px;
+    }
+
+    body > .el-container {
+        margin-bottom: 40px;
+    }
+
+    .el-container:nth-child(5) .el-aside,
+    .el-container:nth-child(6) .el-aside {
+        line-height: 260px;
+    }
+
+    .el-container:nth-child(7) .el-aside {
+        line-height: 620px;
+    }
+</style>
+
+<body>
+<div id="app">
+
+    <el-container style="height: 100%; border: 5px solid #eee">
+        <el-header style="height: 110px; ">
+            <!--Header-->
+            <div style="align-content: flex-end;margin-left: 850px;margin-top: 15px">
+                <el-avatar shape="square" :size="80" :src="headPicUrl"></el-avatar>
+            </div>
+        </el-header>
+        <el-container style="height: 550px; border: 2px solid #eee">
+            <el-aside width="250px" style="background-color:#545c64">
+                <el-menu
+                        wifth="100%"
+                        height="100%"
+                        default-active="2"
+                        class="el-menu-vertical-demo"
+                        @open="handleOpen"
+                        @close="handleClose"
+                        background-color="#545c64"
+                        text-color="#fff"
+                        active-text-color="#ffd04b">
+                    <el-submenu index="1">
+                        <template slot="title">
+                            <i class="el-icon-location"></i>
+                            <span>好友列表</span>
+                        </template>
+                        <el-menu-item-group>
+                            <div v-for='value,index in friendList'>
+                                <el-menu-item index="1-1" @click="changeCurChatObj(value)">
+                                    {{value}}
+                                </el-menu-item>
+                            </div>
+                        </el-menu-item-group>
+                    </el-submenu>
+
+                    <el-submenu index="2">
+                        <template slot="title">
+                            <i class="el-icon-location"></i>
+                            <span>消息列表</span>
+                        </template>
+                        <el-menu-item-group>
+                            <div v-for='value,index in newMsgList'>
+                                <el-menu-item index="1-1" @click="changeCurChatObj(value.name)">
+                                    {{value.name}} + {{value.num}}
+                                </el-menu-item>
+                            </div>
+                        </el-menu-item-group>
+                    </el-submenu>
+
+                    <el-menu-item index="3">
+                        <i class="el-icon-menu"></i>
+                        <span slot="title">好友管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="4" disabled>
+                        <i class="el-icon-document"></i>
+                        <span slot="title">个人信息</span>
+                    </el-menu-item>
+                    <el-menu-item index="5">
+                        <i class="el-icon-setting"></i>
+                        <span slot="title">博客管理</span>
+                    </el-menu-item>
+                </el-menu>
+            </el-aside>
+            <el-container>
+                <div>
+                    <div>
+                        内容
+                        <el-input v-model="testContent"></el-input>
+                        <el-button type="primary" @click="sendMsg()">发送消息</el-button>
+                        <!--<el-button type="primary" @click="changeObj()">改变聊天对象</el-button>-->
+                        <!--<el-input v-model="curChatObj"></el-input>-->
+                        <!--<el-button type="primary" @click="changeObj()">改变自身用户名</el-button>-->
+                        <!--<el-input v-model="myselfName"></el-input>-->
+                        <div>
+                            自己的名字 ：{{myselfName}}
+                        </div>
+                    </div>
+
+                    <!--<el-main>Main</el-main>-->
+
+                    <!--<div v-for='value,index in MsgList'>-->
+                    <!--<div>-->
+                    <!--好友 + {{value.name}}+":"-->
+                    <!--</div>-->
+                    <!--<div v-for='childValue,index in value.content'>-->
+                    <!--<div>-->
+                    <!--消息 + {{childValue.flag}}+":"+{{childValue.msg}}-->
+                    <!--</div>-->
+                    <!--</div>-->
+                    <!--</div>-->
+
+                    <div>
+                        当前好友 + {{curChatObj}}+":"
+                    </div>
+                    <div v-for='value,index in Msg'>
+                        <div>
+                            消息 + {{value.flag}}+":"+{{value.msg}}
+                        </div>
+                    </div>
+
+                </div>
+
+</div>
+</el-container>
+</el-container>
+</el-container>
+
+
+</div>
+</body>
+
+
+
+
+<script>
+
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=");
+            if(pair[0] == variable){return pair[1];}
+        }
+        return(false);
+    };
+
+
+    //根据id查找用户名
+    function getAccount(id) {
+        let result;
+        $.ajax({
+            type:'post',
+            url:'http://localhost/api/user/getAccount?userId='+id,
+            dataType:'json',
+            async: false,
+            contentType:'application/json;charset=UTF-8',
+            data: {
+            },
+            success:function (data) {
+                if(data.success) {
+                    console.log("根据id查找用户名成功！"+data.message);
+                    result = data.message;
+                }else {
+                    alert(data.message);
+                }
+            },
+            error:function () {
+                console.log("服务器错误！");
+            }
+        })
+        return result;
+    };
+
+    //查找全部好友
+    function getFriendList(account){
+        let result;
+        $.ajax({
+            type:'get',
+            url:'http://localhost/api/friend/findFriend?account='+account,
+            dataType:'json',
+            async: false,
+            contentType:'application/json;charset=UTF-8',
+            data: {},
+            success:function (data) {
+                if(data.success) {
+                    console.log("查找全部好友成功！");
+                    result = JSON.parse(data.message);
+                }else {
+                    alert(data.message);
+                }
+            },
+            error:function () {
+                console.log("服务器错误！");
+            }
+        })
+        return result;
+    }
+
+
+
+    //查找未读消息
+    function getNewMsg(account){
+        let result;
+        $.ajax({
+            type:'get',
+            url:'http://localhost/api/message/init?account='+account,
+            dataType:'json',
+            async: false,
+            contentType:'application/json;charset=UTF-8',
+            data: {},
+            success:function (data) {
+                if(data.success) {
+                    console.log("查找未读消息成功！");
+                    // console.log(data);
+                    result = data.findRecordApiRespone;
+                }else {
+                    alert(data.message);
+                }
+            },
+            error:function () {
+                console.log("服务器错误！");
+            }
+        })
+        return result;
+    }
+
+
+    let url_val = getQueryVariable("account");
+    console.log(url_val);
+    let account = getAccount(url_val);
+    console.log(account);
+    let socket;
+    let friendListForServer = getFriendList(account);
+    let getNewMsgRes = getNewMsg(account);
+    var app = new Vue({
+        el: "#app",
+        data() {
+
+            return {
+                headPicUrl: 'http://localhost/static/img/link.jpg',
+                asideContent: '',
+
+                //好友列表 ['123','002','按时']
+                friendList: friendListForServer,
+
+                //新消息列表   [{name: '001',num: '3'}]
+                newMsgList: getNewMsgRes.newMsgList,
+                //用户自身名字
+                myselfName: account,
+                //当前聊天对象
+                curChatObj: '',
+                //消息列表    [{name: '001', content: [{flag: '1', msg: 'qqqqqqqq'}, {flag: '1', msg: 'sssswwss'}]}]
+                MsgList: getNewMsgRes.msgList,
+                //当前聊天对象的聊天记录
+                Msg: [],
+
+                //test
+                //输入框的内容
+                testContent: '',
+                testName: '',
+                testObj: '',
+            };
+        },
+
+
+        created() {
+            console.log("create");
+        },
+
+        mounted() {
+            console.log("mounted");
+
+            let that = this;
+            if (!window.WebSocket) {
+                window.WebSocket = window.MozWebSocket;
+            }
+            if (window.WebSocket) {
+                socket = new WebSocket("ws://localhost:18000/ws");
+                socket.onopen = function (event) {
+                    console.log("连接开起");
+                    that.linkServer(account);
+                };
+                socket.onclose = function (event) {
+                    console.log("连接被关闭");
+                };
+                socket.onmessage = function (evt) {
+
+                    var data = JSON.parse(evt.data);
+                    var name = data.name;
+                    var msg = data.msg;
+                    var recordId = data.id;
+                    that.addMsg(name, msg);
+                    that.addNewMsg(name);
+                    var responeToServer = {
+                        "type": 2,
+                        "type2": 0,
+                        "record": {
+                            "id": recordId,
+                            "userid": '',
+                            "friendid": '',
+                            "read": '',
+                            "createtime": '',
+                            "delete": '',
+                            "message": '',
+                        },
+                        "ext": "",
+                    };
+                    // console.log("将记录"+msg+"改为已读");
+                    socket.send(JSON.stringify(responeToServer));
+                }
+            } else {
+                alert("你的浏览器不支持 WebSocket！");
+            }
+
+        },
+
+
+        methods: {
+
+            handleOpen(key, keyPath) {
+                // console.log(key, keyPath);
+            },
+            handleClose(key, keyPath) {
+                // console.log(key, keyPath);
+            },
+
+
+            //发送消息
+            sendMsg() {
+                var msg = {
+                    "type": 1,
+                    "type2": 0,
+                    "record": {
+                        "id": '',
+                        "userid": this.myselfName,
+                        "friendid": this.curChatObj,
+                        "read": '',
+                        "createtime": new Date(),
+                        "delete": '',
+                        "message": this.testContent,
+                    },
+                    "ext": "",
+                };
+                socket.send(JSON.stringify(msg));
+                for (let index in this.MsgList) {
+                    if (this.MsgList[index].name == this.curChatObj) {
+                        this.MsgList[index].content.push({flag: 'right', msg: this.testContent});
+                        return;
+                    }
+                }
+                this.MsgList.push({name: this.curChatObj, content: [{flag: 'right', msg: this.testContent}]});
+                this.changeObj();
+            },
+
+
+            //测试方法
+            change() {
+                var name = this.testName;
+                for (let index in this.MsgList) {
+                    if (this.MsgList[index].name == name) {
+                        this.MsgList[index].content.push({flag: '增加', msg: this.testContent});
+                        return;
+                    }
+                }
+                this.MsgList.push({name: this.testName, content: [{flag: '增加', msg: this.testContent}]})
+                ;
+            },
+
+            //改变聊天对象
+            changeObj() {
+                var name = this.curChatObj;
+                for (let index in this.MsgList) {
+                    if (this.MsgList[index].name == name) {
+                        this.Msg = this.MsgList[index].content;
+                        return;
+                    }
+                };
+                this.MsgList.push({name: this.curChatObj, content: []});
+                this.Msg =  this.MsgList[this.MsgList.length-1].content;
+            },
+
+            //点击时触发，改变聊天对象
+            changeCurChatObj(val){
+                this.curChatObj = val;
+                this.changeObj();
+                for (let index in this.newMsgList ) {
+                    if (this.newMsgList[index].name == val) {
+                        this.newMsgList[index].num = 0;
+                        break;
+                    }
+                }
+            },
+
+
+            //添加消息方法
+            addMsg(name, msg) {
+                for (let index in this.MsgList) {
+                    if (this.MsgList[index].name == name) {
+                        this.MsgList[index].content.push({flag: 'left', msg: msg});
+                        return;
+                    }
+                }
+                this.MsgList.push({name: name, content: [{flag: 'left', msg: msg}]});
+            },
+
+
+            //添加未读消息方法
+            addNewMsg(name) {
+                if (name == this.curChatObj) return;
+                for (let index in this.newMsgList ) {
+                    if (this.newMsgList[index].name == name) {
+                        this.newMsgList[index].num += 1;
+                        return;
+                    }
+                }
+                this.newMsgList.push({name: name, num: 1});
+            },
+
+            //客户端向服务端发生连接的消息，将用户名传过去（用户唯一标识符）
+            linkServer(account) {
+                let msg = {
+                    "type": 0,
+                    "type2": 0,
+                    "record": {
+                        "id": '',
+                        "userid": account,
+                        "friendid": '',
+                        "read": '',
+                        "createtime": '',
+                        "delete": '',
+                        "message": '',
+                    },
+                    "ext": "",
+                };
+                socket.send(JSON.stringify(msg));
+            },
+
+        }
+    })
+
+
+</script>
+<script>
+    function getCookie(cookie_name) {
+        var allcookies = document.cookie;
+        var cookie_pos = allcookies.indexOf(cookie_name);   //索引的长度
+        // 如果找到了索引，就代表cookie存在，
+        // 反之，就说明不存在。
+        if (cookie_pos != -1) {
+            // 把cookie_pos放在值的开始，只要给值加1即可。
+            cookie_pos += cookie_name.length + 1;      //这里我自己试过，容易出问题，所以请大家参考的时候自己好好研究一下。。。
+            var cookie_end = allcookies.indexOf(";", cookie_pos);
+            if (cookie_end == -1) {
+                cookie_end = allcookies.length;
+            }
+            var value = unescape(allcookies.substring(cookie_pos, cookie_end)); //这里就可以得到你想要的cookie的值了。。。
+        }
+        return value;
+    };
+    function getQueryVariable(variable)
+    {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=");
+            if(pair[0] == variable){return pair[1];}
+        }
+        return(false);
+    }
+</script>
+<script>
+
+    // var  account = "002";
+    //
+    // var socket;
+    // if (!window.WebSocket) {
+    //     window.WebSocket = window.MozWebSocket;
+    // }
+    // if (window.WebSocket) {
+    //     socket = new WebSocket("ws://localhost:18000/ws");
+    //     socket.onopen = function(event) {
+    //         console.log("连接开起");
+    //         conent(account);
+    //     };
+    //     socket.onclose = function(event) {
+    //         console.log("连接被关闭");
+    //     };
+    //     socket.onmessage = function(evt) {
+    //
+    //         var data = JSON.parse(evt.data);
+    //         var name = data.name;
+    //         var msg = data.msg;
+    //         console.log(name+"  "+msg);
+    //         window.
+    //         this.context.addMsg(name,msg);
+    //     }
+    // } else {
+    //     alert("你的浏览器不支持 WebSocket！");
+    // }
+
+
+    // ws.onmessage=function(evt) {
+    //
+    //     var data = JSON.parse(evt.data);
+    //     var name = data.name;
+    //     var msg = data.msg;
+    //     console.log(name+msg);
+    //
+    //     for (let index in this.MsgList) {
+    //         if (this.MsgList[index].name == name) {
+    //             this.MsgList[index].content.push({flag: '', msg: msg});
+    //             return;
+    //         }
+    //     }
+    //     this.MsgList.push({name: name, content: [ {flag: '', msg: msg} ]});
+    //
+    // }
+    //
+    //
+    // ws.onerror=function(){
+    //
+    // }
+
+
+    // if (ws.readyState == WebSocket.OPEN) {
+    //     console.log("发起连接");
+    //     this.conent(account);
+    // }else{
+    //     console.log("未连接");
+    // }
+
+
+    //客户端向服务端发生连接的消息，将用户名传过去（用户唯一标识符）
+    // function conent( account) {
+    //     var msg ={
+    //         "type" :0,
+    //         "type2" :0,
+    //         "record":{
+    //             "id": '',
+    //             "userid" :account,
+    //             "friendid" :'',
+    //             "read" :'',
+    //             "createtime" :'',
+    //             "delete" :'',
+    //             "message" :'',
+    //         },
+    //         "ext" :"",
+    //     };
+    //     socket.send(JSON.stringify(msg));
+    // }
+
+
+</script>
+
+
+</html>

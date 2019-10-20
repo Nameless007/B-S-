@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>register</title>
+    <!--引入vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://lib.baomitu.com/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<style>
+
+
+    .avatar-uploader .el-upload {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .avatar-uploader .el-upload:hover {
+        border-color: #409EFF;
+    }
+    .avatar-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 178px;
+        height: 178px;
+        line-height: 178px;
+        text-align: center;
+    }
+    .avatar {
+        width: 178px;
+        height: 178px;
+        display: block;
+    }
+</style>
+
+<body  style="text-align:center;background: linear-gradient(to right top, rgba(122,172,255,0.55), rgba(122,172,255,0.55)), url(http://localhost/static/img/bg.png) center center no-repeat  ;
+background-size: cover;">
+<div id="app" >
+
+    <div style="width: 500px;height: 500px;align-content: center;margin:0 auto;margin-top: 50px">
+
+        <div style="margin-bottom: 20px">注册</div>
+        <el-form :model="form" status-icon :rules="rules" ref="form" label-width="80px" class="demo-ruleForm">
+            <el-form-item label="账号" prop="account">
+                <el-input   v-model="form.account" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="密码" prop="pass">
+                <el-input type="password" v-model="form.pass" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="确认密码" prop="checkPass">
+            <el-input type="password" v-model="form.checkPass" autocomplete="off"></el-input>
+            </el-form-item>
+
+            <el-form-item label="性别">
+                <el-radio-group v-model="form.sex">
+                    <el-radio label="男"></el-radio>
+                    <el-radio label="女"></el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="生日">
+                <el-col :span="17" style="margin-left:  50px" >
+                    <el-date-picker type="date" placeholder="选择日期" v-model="form.birthday"
+                                    style="width: 100%;"></el-date-picker>
+                </el-col>
+            </el-form-item>
+            <el-form-item label="省份">
+                <el-select v-model="form.province" placeholder="请选择所在省份">
+                    <el-option label="广东" value="广东"></el-option>
+                    <el-option label="其他" value="其他"></el-option>
+                </el-select>
+            </el-form-item>
+
+
+            <!--<el-upload-->
+                    <!--class="upload-demo"-->
+                    <!--ref="upload"-->
+                    <!--action="https://jsonplaceholder.typicode.com/posts/"-->
+                    <!--:on-preview="handlePreview"-->
+                    <!--:on-remove="handleRemove"-->
+                    <!--:file-list="fileList"-->
+                    <!--:multiple="false"-->
+                    <!--:limit="1"-->
+                    <!--:auto-upload="false">-->
+                <!--<el-button slot="trigger" size="small" type="primary">选取文件</el-button>-->
+                <!--<el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>-->
+                <!--<div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>-->
+            <!--</el-upload>-->
+
+            <el-form-item>
+                <el-button @click="checkForm('form')">注册</el-button>
+                <el-button style="margin-left: 10px;"  type="success" @click="login()">登录</el-button>
+            </el-form-item>
+
+        </el-form>
+
+
+
+    </div>
+</div>
+
+</body>
+<script>
+
+
+    var app = new Vue({
+        el: "#app",
+        data() {
+            var validateAccount = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('账号不能为空'));
+                } else {
+                    callback();
+                }
+            };
+            var validatePass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('密码不能为空'));
+                } else {
+                    if (this.form.checkPass !== '') {
+                        this.$refs.form.validateField('checkPass');
+                    }
+                    callback();
+                }
+            };
+            var validatePass2 = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请再次输入密码'));
+                } else if (value !== this.form.pass) {
+                    callback(new Error('两次输入密码不一致!'));
+                } else {
+                    callback();
+                }
+            };
+
+            return {
+
+                rules: {
+                    account: [
+                        {validator: validateAccount, trigger: 'blur'}
+                    ],
+                    pass: [
+                        {validator: validatePass, trigger: 'blur'}
+                    ],
+                    checkPass: [
+                        {validator: validatePass2, trigger: 'blur'}
+                    ],
+                },
+
+                form: {
+                    account:'',
+                    pass: '',
+                    checkPass: '',
+                    sex:'男',
+                    birthday:'',
+                    province:'',
+                },
+
+                // fileList: []
+                 // {name: 'food.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}]
+            }
+
+        },
+        methods: {
+            //提交表单
+            onSubmit() {
+                $.ajax({
+                    type:'post',
+                    url:'http://localhost/api/user/register',
+                    dataType:'json',
+                    contentType:'application/json;charset=UTF-8',
+                    data: JSON.stringify(this.form),
+                    success:function (data) {
+                        if(data.success) {
+                            alert("注册成功！"+data.code);
+                        }else {
+                            alert(data.message)
+                        }
+                    },
+                    error:function () {
+                        alert("注册失败！");
+                    }
+                })
+            },
+
+
+
+            //校验表单，通过就提交表单
+            checkForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        this.onSubmit();
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+
+
+            //跳转到登录界面
+            login(){
+                location.href="http://localhost/blog/login.html";
+            },
+
+            //上传文件
+            // submitUpload() {
+            //     this.$refs.upload.submit();
+            //     console.log('submitFile!');
+            // },
+            // handleRemove(file, fileList) {
+            //     console.log(file, fileList);
+            // },
+            // handlePreview(file) {
+            //     console.log(file);
+            // },
+
+        }
+
+    })
+
+
+</script>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+    <!--引入vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://lib.baomitu.com/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body style="background: linear-gradient(to right top, rgba(38,50,105,0.48), rgba(172,255,252,0.55)), url(http://localhost/static/img/bg.png) center center no-repeat  ;
+background-size: cover;" >
+
+<div id="app" style="text-align: center;height:max-content;width: auto;
+   vertical-align: middle;padding-top: 100px ; padding-left: 50px;padding-right: 50px" >
+
+
+
+<div    style="width: 400px;height: auto;vertical-align: middle;top: 50%;background-color: #8dbdff;
+        text-align: center; margin: auto;border-radius: 14px ;border:6px solid #5994ff;padding: 30px">
+    <div style="margin-bottom: 20px">登录</div>
+    <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+        <el-form-item label="账号" prop="account">
+            <el-input   v-model="ruleForm.account" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="pass">
+            <el-input type="password" v-model="ruleForm.pass" autocomplete="off"></el-input>
+        </el-form-item>
+        <!--<el-form-item label="确认密码" prop="checkPass">-->
+            <!--<el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>-->
+        <!--</el-form-item>-->
+        <el-form-item>
+            <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
+            <el-button @click="register()">注册</el-button>
+            <el-button @click="resetForm('ruleForm')">重置</el-button>
+        </el-form-item>
+    </el-form>
+</div>
+
+
+</div>
+</body>
+
+
+
+<script>
+
+
+    var app = new Vue({
+        el: "#app",
+        data() {
+            var validateAccount = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请输入账号'));
+                } else {
+                    callback();
+                }
+            };
+            var validatePass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请输入密码'));
+                } else {
+                    callback();
+                }
+            };
+            return {
+                ruleForm: {
+                    account:'',
+                    pass: '',
+                },
+                rules: {
+                    account: [
+                        {validator: validateAccount, trigger: 'blur'}
+                    ],
+                    pass: [
+                        {validator: validatePass, trigger: 'blur'}
+                    ],
+                }
+            };
+        },
+        methods: {
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        this.onlogint();
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+
+
+            //登录
+            onlogint() {
+                $.ajax({
+                    type:'post',
+                    url:'http://localhost/api/user/login',
+                    dataType:'json',
+                    contentType:'application/json;charset=UTF-8',
+                    data: JSON.stringify(this.ruleForm),
+                    success:function (data) {
+                        if(data.success) {
+                            console.log("登陆成功！"+data.code);
+                            let account = getCookie("account");
+                            location.href="http://localhost/blog/basic.html?account="+account;
+                        }else {
+                            alert(data.message)
+                        }
+                    },
+                    error:function () {
+                        console.log("服务器错误！");
+                    }
+                })
+            },
+
+
+
+            register(){
+                location.href="http://localhost/blog/register.html";
+            },
+
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            }
+        }
+    })
+
+
+</script>
+<script>
+    function getCookie(cookie_name) {
+        var allcookies = document.cookie;
+        var cookie_pos = allcookies.indexOf(cookie_name);   //索引的长度
+        // 如果找到了索引，就代表cookie存在，
+        // 反之，就说明不存在。
+        if (cookie_pos != -1) {
+            // 把cookie_pos放在值的开始，只要给值加1即可。
+            cookie_pos += cookie_name.length + 1;      //这里我自己试过，容易出问题，所以请大家参考的时候自己好好研究一下。。。
+            var cookie_end = allcookies.indexOf(";", cookie_pos);
+            if (cookie_end == -1) {
+                cookie_end = allcookies.length;
+            }
+            var value = unescape(allcookies.substring(cookie_pos, cookie_end)); //这里就可以得到你想要的cookie的值了。。。
+        }
+        return value;
+    };
+</script>
+</html>

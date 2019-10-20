@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.nameless.mapper.FriendMapper" >
+
+    <select id="findFriendsByAccount" parameterType="java.lang.String" resultType="java.lang.String" >
+         SELECT a.user2  FROM friend a  WHERE a.user1=#{account}
+         UNION SELECT b.user1   FROM friend b  WHERE b.user2=#{account}
+    </select>
+
+    <select id="findAll"   resultType="com.nameless.model.Friend" >
+         SELECT *  FROM friend
+    </select>
+
+</mapper>
